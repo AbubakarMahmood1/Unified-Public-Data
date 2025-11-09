@@ -3,14 +3,14 @@ import DataLoader from 'dataloader';
 
 const BASE_URL = 'https://jsonplaceholder.typicode.com';
 
-interface Post {
+export interface Post {
   id: number;
   userId: number;
   title: string;
   body: string;
 }
 
-interface User {
+export interface User {
   id: number;
   name: string;
   username: string;
@@ -19,7 +19,7 @@ interface User {
   website: string;
 }
 
-interface Comment {
+export interface Comment {
   id: number;
   postId: number;
   name: string;

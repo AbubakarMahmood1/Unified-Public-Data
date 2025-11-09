@@ -5,17 +5,102 @@ import { JSONPlaceholderAPI } from '../src/datasources/JSONPlaceholderAPI';
 import { WeatherAPI } from '../src/datasources/WeatherAPI';
 import { CountriesAPI } from '../src/datasources/CountriesAPI';
 
+// Mock the datasources
+jest.mock('../src/datasources/JSONPlaceholderAPI');
+jest.mock('../src/datasources/WeatherAPI');
+jest.mock('../src/datasources/CountriesAPI');
+
 describe('GraphQL Resolvers', () => {
   let testServer: ApolloServer<Context>;
+  let mockJsonPlaceholder: jest.Mocked<JSONPlaceholderAPI>;
+  let mockWeather: jest.Mocked<WeatherAPI>;
+  let mockCountries: jest.Mocked<CountriesAPI>;
 
-  beforeAll(() => {
+  beforeEach(() => {
     testServer = new ApolloServer<Context>({
       typeDefs,
       resolvers,
     });
+
+    mockJsonPlaceholder = new JSONPlaceholderAPI() as jest.Mocked<JSONPlaceholderAPI>;
+    mockWeather = new WeatherAPI() as jest.Mocked<WeatherAPI>;
+    mockCountries = new CountriesAPI() as jest.Mocked<CountriesAPI>;
+
+    // Setup mock responses
+    mockJsonPlaceholder.fetchPosts = jest.fn().mockResolvedValue([
+      { id: 1, userId: 1, title: 'Test Post', body: 'Test body' },
+      { id: 2, userId: 1, title: 'Test Post 2', body: 'Test body 2' },
+    ]);
+
+    mockJsonPlaceholder.getPost = jest.fn().mockResolvedValue({
+      id: 1,
+      userId: 1,
+      title: 'Test Post',
+      body: 'Test body',
+    });
+
+    mockJsonPlaceholder.fetchUsers = jest.fn().mockResolvedValue([
+      { id: 1, name: 'John Doe', username: 'johndoe', email: 'john@example.com', phone: '123', website: 'example.com' },
+    ]);
+
+    mockJsonPlaceholder.getUser = jest.fn().mockResolvedValue({
+      id: 1,
+      name: 'John Doe',
+      username: 'johndoe',
+      email: 'john@example.com',
+      phone: '123',
+      website: 'example.com',
+    });
+
+    mockJsonPlaceholder.fetchComments = jest.fn().mockResolvedValue([
+      { id: 1, postId: 1, name: 'Comment 1', email: 'user@example.com', body: 'Comment body' },
+    ]);
+
+    mockJsonPlaceholder.getPostsByUserId = jest.fn().mockResolvedValue([
+      { id: 1, userId: 1, title: 'Test Post', body: 'Test body' },
+    ]);
+
+    mockWeather.getWeather = jest.fn().mockResolvedValue({
+      latitude: 52.52,
+      longitude: 13.41,
+      timezone: 'Europe/Berlin',
+      current: {
+        temperature: 15.5,
+        windSpeed: 10.2,
+        windDirection: 180,
+        weatherCode: 0,
+        time: '2024-01-01T12:00:00',
+      },
+    });
+
+    mockCountries.fetchAllCountries = jest.fn().mockResolvedValue([
+      {
+        name: { common: 'United States', official: 'United States of America' },
+        cca2: 'US',
+        cca3: 'USA',
+        capital: ['Washington, D.C.'],
+        region: 'Americas',
+        population: 331000000,
+        flags: { png: 'https://example.com/us.png', svg: 'https://example.com/us.svg' },
+        currencies: [{ code: 'USD', name: 'United States dollar', symbol: '$' }],
+        languages: ['English'],
+      },
+    ]);
+
+    mockCountries.getCountryByCode = jest.fn().mockResolvedValue({
+      name: { common: 'United States', official: 'United States of America' },
+      cca2: 'US',
+      cca3: 'USA',
+      capital: ['Washington, D.C.'],
+      region: 'Americas',
+      population: 331000000,
+      flags: { png: 'https://example.com/us.png', svg: 'https://example.com/us.svg' },
+      currencies: [{ code: 'USD', name: 'United States dollar', symbol: '$' }],
+      languages: ['English'],
+    });
   });
 
-  afterAll(async () => {
+  afterEach(async () => {
     await testServer.stop();
   });
 
@@ -36,9 +121,9 @@ describe('GraphQL Resolvers', () => {
         {
           contextValue: {
             dataSources: {
-              jsonPlaceholder: new JSONPlaceholderAPI(),
-              weather: new WeatherAPI(),
-              countries: new CountriesAPI(),
+              jsonPlaceholder: mockJsonPlaceholder,
+              weather: mockWeather,
+              countries: mockCountries,
             },
           },
         }
@@ -69,9 +154,9 @@ describe('GraphQL Resolvers', () => {
         {
           contextValue: {
             dataSources: {
-              jsonPlaceholder: new JSONPlaceholderAPI(),
-              weather: new WeatherAPI(),
-              countries: new CountriesAPI(),
+              jsonPlaceholder: mockJsonPlaceholder,
+              weather: mockWeather,
+              countries: mockCountries,
             },
           },
         }
@@ -100,9 +185,9 @@ describe('GraphQL Resolvers', () => {
         {
           contextValue: {
             dataSources: {
-              jsonPlaceholder: new JSONPlaceholderAPI(),
-              weather: new WeatherAPI(),
-              countries: new CountriesAPI(),
+              jsonPlaceholder: mockJsonPlaceholder,
+              weather: mockWeather,
+              countries: mockCountries,
             },
           },
         }
@@ -137,9 +222,9 @@ describe('GraphQL Resolvers', () => {
         {
           contextValue: {
             dataSources: {
-              jsonPlaceholder: new JSONPlaceholderAPI(),
-              weather: new WeatherAPI(),
-              countries: new CountriesAPI(),
+              jsonPlaceholder: mockJsonPlaceholder,
+              weather: mockWeather,
+              countries: mockCountries,
             },
           },
         }
@@ -172,9 +257,9 @@ describe('GraphQL Resolvers', () => {
         {
           contextValue: {
             dataSources: {
-              jsonPlaceholder: new JSONPlaceholderAPI(),
-              weather: new WeatherAPI(),
-              countries: new CountriesAPI(),
+              jsonPlaceholder: mockJsonPlaceholder,
+              weather: mockWeather,
+              countries: mockCountries,
             },
           },
         }
@@ -206,9 +291,9 @@ describe('GraphQL Resolvers', () => {
         {
           contextValue: {
             dataSources: {
-              jsonPlaceholder: new JSONPlaceholderAPI(),
-              weather: new WeatherAPI(),
-              countries: new CountriesAPI(),
+              jsonPlaceholder: mockJsonPlaceholder,
+              weather: mockWeather,
+              countries: mockCountries,
             },
           },
         }
@@ -241,9 +326,9 @@ describe('GraphQL Resolvers', () => {
         {
           contextValue: {
             dataSources: {
-              jsonPlaceholder: new JSONPlaceholderAPI(),
-              weather: new WeatherAPI(),
-              countries: new CountriesAPI(),
+              jsonPlaceholder: mockJsonPlaceholder,
+              weather: mockWeather,
+              countries: mockCountries,
             },
           },
         }
@@ -252,7 +337,8 @@ describe('GraphQL Resolvers', () => {
       expect(response.body.kind).toBe('single');
       if (response.body.kind === 'single') {
         expect(response.body.singleResult.errors).toBeUndefined();
-        expect(response.body.singleResult.data?.post?.user).toBeDefined();
+        const data = response.body.singleResult.data as { post: { user: unknown } };
+        expect(data.post.user).toBeDefined();
       }
     });
   });

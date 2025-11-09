@@ -15,7 +15,7 @@ interface WeatherResponse {
   };
 }
 
-interface Weather {
+export interface Weather {
   latitude: number;
   longitude: number;
   timezone: string;
