@@ -74,7 +74,20 @@ export class CountriesAPI {
   async fetchAllCountries(limit?: number): Promise<Country[]> {
     try {
       const response = await fetch(`${BASE_URL}/all?fields=name,cca2,cca3,capital,region,subregion,population,area,flags,currencies,languages`);
+
+      if (!response.ok) {
+        console.error(`Countries API error: ${response.status} ${response.statusText}`);
+        return [];
+      }
+
       const data = (await response.json()) as CountryResponse[];
+
+      // Check if data is actually an array
+      if (!Array.isArray(data)) {
+        console.error('Countries API returned non-array:', data);
+        return [];
+      }
+
       const countries = data.map((country) => this.transformCountry(country));
       return limit ? countries.slice(0, limit) : countries;
     } catch (error) {
