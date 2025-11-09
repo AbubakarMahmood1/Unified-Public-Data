@@ -95,4 +95,10 @@ export const typeDefs = gql`
     country(code: String!): Country
     countriesByRegion(region: String!): [Country!]!
   }
+
+  # Subscription Root
+  type Subscription {
+    # Weather Updates
+    weatherUpdates(latitude: Float!, longitude: Float!, intervalSeconds: Int = 60): Weather!
+  }
 `;

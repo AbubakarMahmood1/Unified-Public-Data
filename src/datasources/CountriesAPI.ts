@@ -23,7 +23,7 @@ interface CountryResponse {
   languages?: Record<string, string>;
 }
 
-interface Country {
+export interface Country {
   name: {
     common: string;
     official: string;

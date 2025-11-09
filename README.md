@@ -8,15 +8,20 @@ GraphQL adoption keeps rising in enterprises. A gateway that federates 2-3 publi
 
 ## Features
 
-✅ **Implemented**
-- Apollo Server 4 (Node.js/TypeScript)
-- GraphQL schema with resolvers calling 3 public REST APIs
-- Response caching with configurable TTL
-- Query cost analysis to prevent abuse
-- Query depth limiting
-- DataLoader for efficient request batching
-- Comprehensive test suite
-- GraphQL Playground for interactive testing
+✅ **Fully Implemented**
+- **Apollo Server 4** (Node.js/TypeScript)
+- **3 Public REST APIs** integrated (JSONPlaceholder, Open Meteo, REST Countries)
+- **Response Caching** with configurable TTL (5 min default)
+- **Persisted Queries** (APQ support, 24h TTL)
+- **Query Cost Analysis** to prevent abuse (max 1000 points)
+- **Query Depth Limiting** (max 10 levels)
+- **Rate Limiting** (100 requests/min per IP)
+- **Metrics & Monitoring** with real-time performance tracking
+- **GraphQL Subscriptions** for live weather updates
+- **DataLoader** for efficient request batching
+- **Comprehensive Test Suite** (10 passing tests)
+- **GraphQL Playground** for interactive testing
+- **Deployment Ready** (Cloudflare Workers, Vercel, Docker)
 
 ## Integrated APIs
 
@@ -123,12 +128,28 @@ Tests cover:
 
 ## Deployment
 
-Ready to deploy to:
-- Cloudflare Workers
-- Vercel
-- Any Node.js hosting platform
+Ready to deploy to multiple platforms:
 
-See [CLAUDE.md](./CLAUDE.md) for detailed development documentation.
+### Cloudflare Workers
+```bash
+npm run deploy:cloudflare
+```
+
+### Vercel
+```bash
+npm run deploy:vercel
+```
+
+### Docker
+```bash
+docker build -t unified-public-data .
+docker run -p 4000:4000 unified-public-data
+```
+
+### Other Platforms
+Works on Railway, Render, Fly.io, Heroku, AWS, Google Cloud, Azure, and any Node.js hosting.
+
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed deployment instructions.
 
 ## Example Queries
 
@@ -139,11 +160,14 @@ See [EXAMPLE_QUERIES.md](./EXAMPLE_QUERIES.md) for more query examples.
 - [x] Schema stitching with 3 public APIs
 - [x] Response caching
 - [x] Query cost limits
-- [ ] Persisted queries
-- [ ] Deploy to Cloudflare Workers/Vercel
-- [ ] GraphQL subscriptions (real-time weather updates)
-- [ ] Rate limiting per IP
-- [ ] Metrics and monitoring
+- [x] Persisted queries
+- [x] Rate limiting per IP
+- [x] Metrics and monitoring
+- [x] GraphQL subscriptions (real-time weather updates)
+- [x] Deploy configs for Cloudflare Workers/Vercel
+- [ ] Authentication & authorization
+- [ ] GraphQL Federation v2
+- [ ] OpenTelemetry integration
 
 ## License
 
