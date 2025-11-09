@@ -77,7 +77,7 @@ async function startServer() {
   console.log(`   - Metrics & monitoring (logging every ${METRICS_LOG_INTERVAL / 1000}s)`);
   console.log(`   - Rate limiting (100 requests/minute per IP)`);
   console.log(`   - Query complexity analysis (max cost: 1000)`);
-  console.log(`   - Response caching (TTL: 5 minutes)`);
+  console.log(`   - Response caching (TTL: 5 minutes, GET requests only)`);
   console.log(`   - Persisted queries (APQ support, TTL: 24 hours)`);
   console.log(`   - Query depth limiting (max depth: 10)`);
   console.log(`   - DataLoader batching for efficient API calls`);
@@ -85,8 +85,8 @@ async function startServer() {
   console.log(`   - JSONPlaceholder (posts, users, comments)`);
   console.log(`   - Open Meteo (weather data)`);
   console.log(`   - REST Countries (country information)`);
-  console.log(`\n🎮 Try the GraphQL Playground at ${url}`);
-  console.log(`📈 Metrics endpoint: ${url}metrics (coming soon)\n`);
+  console.log(`\n🎮 GraphQL Playground: ${url}`);
+  console.log(`📊 Metrics: Logged to console every ${METRICS_LOG_INTERVAL / 1000}s\n`);
 }
 
 startServer().catch((error) => {
