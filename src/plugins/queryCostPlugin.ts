@@ -1,7 +1,7 @@
 import {
   ApolloServerPlugin,
   GraphQLRequestListener,
-  GraphQLRequestContext,
+  BaseContext,
 } from '@apollo/server';
 import {
   GraphQLError,
@@ -25,24 +25,25 @@ interface CostResult {
   depth: number;
 }
 
-export const queryCostPlugin = (
+export const queryCostPlugin = <TContext extends BaseContext>(
   options: QueryCostPluginOptions
-): ApolloServerPlugin => {
+): ApolloServerPlugin<TContext> => {
   const {
     maximumCost,
     defaultCost = 1,
     scalarCost = 1,
-    objectCost = 1,
     listMultiplier = 10,
   } = options;
 
   return {
-    async requestDidStart(): Promise<GraphQLRequestListener<unknown>> {
+    async requestDidStart(): Promise<GraphQLRequestListener<TContext>> {
       return {
-        async didResolveOperation(
-          requestContext: GraphQLRequestContext<unknown>
-        ) {
+        async didResolveOperation(requestContext) {
           const { schema, document, operationName } = requestContext;
+
+          if (!document) {
+            return;
+          }
 
           // Find the operation
           const operation = document.definitions.find(

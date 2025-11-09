@@ -1,11 +1,12 @@
 import {
   ApolloServerPlugin,
   GraphQLRequestListener,
-  GraphQLRequestContext,
+  BaseContext,
+  HeaderMap,
 } from '@apollo/server';
 
 interface CacheEntry {
-  data: unknown;
+  data: Record<string, unknown> | null;
   timestamp: number;
 }
 
@@ -14,9 +15,9 @@ interface ResponseCachePluginOptions {
   maxSize?: number; // Maximum cache size
 }
 
-export const responseCachePlugin = (
+export const responseCachePlugin = <TContext extends BaseContext>(
   options: ResponseCachePluginOptions = {}
-): ApolloServerPlugin => {
+): ApolloServerPlugin<TContext> => {
   const { ttl = 300, maxSize = 100 } = options; // Default 5 minutes TTL, 100 entries max
   const cache = new Map<string, CacheEntry>();
 
@@ -42,13 +43,11 @@ export const responseCachePlugin = (
   };
 
   return {
-    async requestDidStart(): Promise<GraphQLRequestListener<unknown>> {
+    async requestDidStart(): Promise<GraphQLRequestListener<TContext>> {
       let cacheKey: string | null = null;
 
       return {
-        async responseForOperation(
-          requestContext: GraphQLRequestContext<unknown>
-        ) {
+        async responseForOperation(requestContext) {
           // Only cache GET requests (queries, not mutations)
           if (requestContext.request.http?.method !== 'GET') {
             return null;
@@ -69,15 +68,16 @@ export const responseCachePlugin = (
             const age = Math.floor((Date.now() - cached.timestamp) / 1000);
             console.log(`Cache hit! Age: ${age}s`);
 
+            const headers = new HeaderMap();
+            headers.set('cache-control', `max-age=${ttl}`);
+            headers.set('age', age.toString());
+
             return {
               http: {
-                headers: new Map([
-                  ['cache-control', `max-age=${ttl}`],
-                  ['age', age.toString()],
-                ]),
+                headers,
               },
               body: {
-                kind: 'single',
+                kind: 'single' as const,
                 singleResult: {
                   data: cached.data,
                 },
@@ -88,28 +88,26 @@ export const responseCachePlugin = (
           return null;
         },
 
-        async willSendResponse(
-          requestContext: GraphQLRequestContext<unknown>
-        ) {
+        async willSendResponse(requestContext) {
+          const { response } = requestContext;
+
           // Only cache successful GET requests
           if (
             requestContext.request.http?.method === 'GET' &&
-            requestContext.response.body.kind === 'single' &&
-            !requestContext.response.body.singleResult.errors &&
+            response.body &&
+            response.body.kind === 'single' &&
+            !response.body.singleResult.errors &&
             cacheKey
           ) {
             cache.set(cacheKey, {
-              data: requestContext.response.body.singleResult.data,
+              data: response.body.singleResult.data ?? null,
               timestamp: Date.now(),
             });
 
             cleanupCache();
 
             // Add cache headers
-            requestContext.response.http.headers.set(
-              'cache-control',
-              `max-age=${ttl}`
-            );
+            response.http.headers.set('cache-control', `max-age=${ttl}`);
           }
         },
       };

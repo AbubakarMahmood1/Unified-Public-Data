@@ -6,16 +6,53 @@ import { WeatherAPI } from '../src/datasources/WeatherAPI';
 import { CountriesAPI } from '../src/datasources/CountriesAPI';
 import { queryCostPlugin } from '../src/plugins/queryCostPlugin';
 
+// Mock the datasources
+jest.mock('../src/datasources/JSONPlaceholderAPI');
+jest.mock('../src/datasources/WeatherAPI');
+jest.mock('../src/datasources/CountriesAPI');
+
 describe('Query Cost Plugin', () => {
   let testServer: ApolloServer<Context>;
+  let mockJsonPlaceholder: jest.Mocked<JSONPlaceholderAPI>;
+  let mockWeather: jest.Mocked<WeatherAPI>;
+  let mockCountries: jest.Mocked<CountriesAPI>;
 
   beforeEach(() => {
+    mockJsonPlaceholder = new JSONPlaceholderAPI() as jest.Mocked<JSONPlaceholderAPI>;
+    mockWeather = new WeatherAPI() as jest.Mocked<WeatherAPI>;
+    mockCountries = new CountriesAPI() as jest.Mocked<CountriesAPI>;
+
+    // Setup mock responses
+    mockJsonPlaceholder.getPost = jest.fn().mockResolvedValue({
+      id: 1,
+      userId: 1,
+      title: 'Test Post',
+      body: 'Test body',
+    });
+
+    mockJsonPlaceholder.fetchPosts = jest.fn().mockResolvedValue([
+      { id: 1, userId: 1, title: 'Test Post', body: 'Test body' },
+    ]);
+
+    mockJsonPlaceholder.getUser = jest.fn().mockResolvedValue({
+      id: 1,
+      name: 'John Doe',
+      username: 'johndoe',
+      email: 'john@example.com',
+      phone: '123',
+      website: 'example.com',
+    });
+
+    mockJsonPlaceholder.getPostsByUserId = jest.fn().mockResolvedValue([
+      { id: 1, userId: 1, title: 'Test Post', body: 'Test body' },
+    ]);
+
     testServer = new ApolloServer<Context>({
       typeDefs,
       resolvers,
       plugins: [
         queryCostPlugin({
-          maximumCost: 100, // Lower limit for testing
+          maximumCost: 5, // Very low limit for testing
           defaultCost: 1,
           scalarCost: 1,
           objectCost: 1,
@@ -44,9 +81,9 @@ describe('Query Cost Plugin', () => {
       {
         contextValue: {
           dataSources: {
-            jsonPlaceholder: new JSONPlaceholderAPI(),
-            weather: new WeatherAPI(),
-            countries: new CountriesAPI(),
+            jsonPlaceholder: mockJsonPlaceholder,
+            weather: mockWeather,
+            countries: mockCountries,
           },
         },
       }
@@ -78,9 +115,9 @@ describe('Query Cost Plugin', () => {
       {
         contextValue: {
           dataSources: {
-            jsonPlaceholder: new JSONPlaceholderAPI(),
-            weather: new WeatherAPI(),
-            countries: new CountriesAPI(),
+            jsonPlaceholder: mockJsonPlaceholder,
+            weather: mockWeather,
+            countries: mockCountries,
           },
         },
       }
@@ -112,9 +149,9 @@ describe('Query Cost Plugin', () => {
       {
         contextValue: {
           dataSources: {
-            jsonPlaceholder: new JSONPlaceholderAPI(),
-            weather: new WeatherAPI(),
-            countries: new CountriesAPI(),
+            jsonPlaceholder: mockJsonPlaceholder,
+            weather: mockWeather,
+            countries: mockCountries,
           },
         },
       }

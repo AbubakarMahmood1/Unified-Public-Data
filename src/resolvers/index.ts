@@ -1,6 +1,7 @@
 import { JSONPlaceholderAPI } from '../datasources/JSONPlaceholderAPI';
 import { WeatherAPI } from '../datasources/WeatherAPI';
 import { CountriesAPI } from '../datasources/CountriesAPI';
+import { subscriptionResolvers } from './subscriptions';
 
 export interface Context {
   dataSources: {
@@ -11,6 +12,7 @@ export interface Context {
 }
 
 export const resolvers = {
+  ...subscriptionResolvers,
   Query: {
     // JSONPlaceholder Queries
     posts: async (

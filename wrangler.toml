@@ -1,0 +1,10 @@
+name = "unified-public-data"
+main = "dist/worker.js"
+compatibility_date = "2024-01-01"
+
+[build]
+command = "npm run build:worker"
+watch_dirs = ["src"]
+
+[env.production]
+name = "unified-public-data-prod"
