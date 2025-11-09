@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "build": "tsc",
+    "build:worker": "tsc && cp wrangler.toml dist/",
     "start": "node dist/index.js",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -13,7 +14,10 @@
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
     "format": "prettier --write \"src/**/*.ts\"",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "deploy:cloudflare": "npm run build:worker && wrangler deploy",
+    "deploy:vercel": "vercel --prod",
+    "prepare": "npm run build"
   },
   "keywords": [
     "graphql",
