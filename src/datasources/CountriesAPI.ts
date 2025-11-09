@@ -73,7 +73,8 @@ export class CountriesAPI {
 
   async fetchAllCountries(limit?: number): Promise<Country[]> {
     try {
-      const response = await fetch(`${BASE_URL}/all?fields=name,cca2,cca3,capital,region,subregion,population,area,flags,currencies,languages`);
+      // Remove fields parameter - API is strict about field validation
+      const response = await fetch(`${BASE_URL}/all`);
 
       if (!response.ok) {
         console.error(`Countries API error: ${response.status} ${response.statusText}`);
@@ -112,11 +113,19 @@ export class CountriesAPI {
 
   async getCountriesByRegion(region: string): Promise<Country[]> {
     try {
-      const response = await fetch(`${BASE_URL}/region/${region}?fields=name,cca2,cca3,capital,region,subregion,population,area,flags,currencies,languages`);
+      // Remove fields parameter for consistency
+      const response = await fetch(`${BASE_URL}/region/${region}`);
       if (!response.ok) {
+        console.error(`Countries API region error: ${response.status} ${response.statusText}`);
         return [];
       }
       const data = (await response.json()) as CountryResponse[];
+
+      if (!Array.isArray(data)) {
+        console.error('Countries API returned non-array for region:', data);
+        return [];
+      }
+
       return data.map((country) => this.transformCountry(country));
     } catch (error) {
       console.error('Error fetching countries by region:', error);
