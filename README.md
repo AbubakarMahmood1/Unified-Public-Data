@@ -2,10 +2,6 @@
 
 GraphQL Gateway that federates multiple public REST APIs into a unified GraphQL interface with intelligent caching, query cost analysis, and abuse prevention.
 
-## Why It Matters
-
-GraphQL adoption keeps rising in enterprises. A gateway that federates 2-3 public REST sources with caching and cost analysis demonstrates API design maturity without external auth hurdles.
-
 ## Features
 
 ✅ **Fully Implemented**
