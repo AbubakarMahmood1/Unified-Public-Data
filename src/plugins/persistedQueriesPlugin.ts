@@ -19,6 +19,7 @@ export const persistedQueriesPlugin = <TContext extends BaseContext>(
 ): ApolloServerPlugin<TContext> => {
   const { ttl = 86400 } = options; // Default 24 hours
   const queryStore = new Map<string, QueryEntry>();
+  let insertsSinceCleanup = 0;
 
   const removeExpired = () => {
     const now = Date.now();
@@ -50,9 +51,10 @@ export const persistedQueriesPlugin = <TContext extends BaseContext>(
             timestamp: Date.now(),
           });
 
-          // Periodic cleanup
-          if (Math.random() < 0.01) {
-            // 1% chance to cleanup
+          // Deterministic periodic cleanup so the store cannot grow unbounded
+          insertsSinceCleanup++;
+          if (insertsSinceCleanup >= 100) {
+            insertsSinceCleanup = 0;
             removeExpired();
           }
         },

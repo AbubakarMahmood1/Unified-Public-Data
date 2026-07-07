@@ -21,6 +21,7 @@ export const rateLimitPlugin = <TContext extends BaseContext>(
 ): ApolloServerPlugin<TContext> => {
   const { max = 100, windowMs = 60000, skipSuccessfulRequests = false } = options;
   const store = new Map<string, RateLimitEntry>();
+  let requestsSinceCleanup = 0;
 
   const getClientIp = (request: { http?: { headers: Map<string, string> } }): string => {
     if (!request.http?.headers) {
@@ -96,8 +97,10 @@ export const rateLimitPlugin = <TContext extends BaseContext>(
           // Increment counter
           entry.count++;
 
-          // Periodic cleanup
-          if (Math.random() < 0.01) {
+          // Deterministic periodic cleanup so stale buckets cannot accumulate
+          requestsSinceCleanup++;
+          if (requestsSinceCleanup >= 100) {
+            requestsSinceCleanup = 0;
             cleanupExpired();
           }
         },
