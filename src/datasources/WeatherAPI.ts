@@ -1,4 +1,5 @@
 import fetch from 'node-fetch';
+import { requireSuccessfulResponse } from './upstreamResponse';
 
 const BASE_URL = 'https://api.open-meteo.com/v1';
 
@@ -30,31 +31,23 @@ export interface Weather {
 
 export class WeatherAPI {
   async getWeather(latitude: number, longitude: number): Promise<Weather | null> {
-    try {
-      const url = `${BASE_URL}/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`;
-      const response = await fetch(url);
+    const url = `${BASE_URL}/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`;
+    const response = await fetch(url);
+    requireSuccessfulResponse(response, 'Open-Meteo');
 
-      if (!response.ok) {
-        return null;
-      }
+    const data = (await response.json()) as WeatherResponse;
 
-      const data = (await response.json()) as WeatherResponse;
-
-      return {
-        latitude: data.latitude,
-        longitude: data.longitude,
-        timezone: data.timezone,
-        current: {
-          temperature: data.current_weather.temperature,
-          windSpeed: data.current_weather.windspeed,
-          windDirection: data.current_weather.winddirection,
-          weatherCode: data.current_weather.weathercode,
-          time: data.current_weather.time,
-        },
-      };
-    } catch (error) {
-      console.error('Error fetching weather:', error);
-      return null;
-    }
+    return {
+      latitude: data.latitude,
+      longitude: data.longitude,
+      timezone: data.timezone,
+      current: {
+        temperature: data.current_weather.temperature,
+        windSpeed: data.current_weather.windspeed,
+        windDirection: data.current_weather.winddirection,
+        weatherCode: data.current_weather.weathercode,
+        time: data.current_weather.time,
+      },
+    };
   }
 }

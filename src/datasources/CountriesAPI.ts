@@ -1,4 +1,5 @@
 import fetch from 'node-fetch';
+import { requireSuccessfulResponse, UpstreamResponseError } from './upstreamResponse';
 
 const BASE_URL = 'https://restcountries.com/v3.1';
 
@@ -72,64 +73,43 @@ export class CountriesAPI {
   }
 
   async fetchAllCountries(limit?: number): Promise<Country[]> {
-    try {
-      // Remove fields parameter - API is strict about field validation
-      const response = await fetch(`${BASE_URL}/all`);
+    // Remove fields parameter - API is strict about field validation
+    const response = await fetch(`${BASE_URL}/all`);
+    requireSuccessfulResponse(response, 'REST Countries');
 
-      if (!response.ok) {
-        console.error(`Countries API error: ${response.status} ${response.statusText}`);
-        return [];
-      }
-
-      const data = (await response.json()) as CountryResponse[];
-
-      // Check if data is actually an array
-      if (!Array.isArray(data)) {
-        console.error('Countries API returned non-array:', data);
-        return [];
-      }
-
-      const countries = data.map((country) => this.transformCountry(country));
-      return limit ? countries.slice(0, limit) : countries;
-    } catch (error) {
-      console.error('Error fetching countries:', error);
-      return [];
+    const data = (await response.json()) as CountryResponse[];
+    if (!Array.isArray(data)) {
+      throw new UpstreamResponseError('REST Countries', 'expected a country list');
     }
+
+    const countries = data.map((country) => this.transformCountry(country));
+    return limit ? countries.slice(0, limit) : countries;
   }
 
   async getCountryByCode(code: string): Promise<Country | null> {
-    try {
-      const response = await fetch(`${BASE_URL}/alpha/${code}`);
-      if (!response.ok) {
-        return null;
-      }
-      const data = (await response.json()) as CountryResponse[];
-      return data.length > 0 ? this.transformCountry(data[0]) : null;
-    } catch (error) {
-      console.error('Error fetching country:', error);
+    const response = await fetch(`${BASE_URL}/alpha/${code}`);
+    if (response.status === 404) {
       return null;
     }
+    requireSuccessfulResponse(response, 'REST Countries');
+
+    const data = (await response.json()) as CountryResponse[];
+    if (!Array.isArray(data)) {
+      throw new UpstreamResponseError('REST Countries', 'expected a country lookup list');
+    }
+    return data.length > 0 ? this.transformCountry(data[0]) : null;
   }
 
   async getCountriesByRegion(region: string): Promise<Country[]> {
-    try {
-      // Remove fields parameter for consistency
-      const response = await fetch(`${BASE_URL}/region/${region}`);
-      if (!response.ok) {
-        console.error(`Countries API region error: ${response.status} ${response.statusText}`);
-        return [];
-      }
-      const data = (await response.json()) as CountryResponse[];
+    // Remove fields parameter for consistency
+    const response = await fetch(`${BASE_URL}/region/${region}`);
+    requireSuccessfulResponse(response, 'REST Countries');
 
-      if (!Array.isArray(data)) {
-        console.error('Countries API returned non-array for region:', data);
-        return [];
-      }
-
-      return data.map((country) => this.transformCountry(country));
-    } catch (error) {
-      console.error('Error fetching countries by region:', error);
-      return [];
+    const data = (await response.json()) as CountryResponse[];
+    if (!Array.isArray(data)) {
+      throw new UpstreamResponseError('REST Countries', 'expected a region result list');
     }
+
+    return data.map((country) => this.transformCountry(country));
   }
 }
