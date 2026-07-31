@@ -1,5 +1,6 @@
 import fetch from 'node-fetch';
 import DataLoader from 'dataloader';
+import { requireSuccessfulResponse } from './upstreamResponse';
 
 const BASE_URL = 'https://jsonplaceholder.typicode.com';
 
@@ -51,6 +52,7 @@ export class JSONPlaceholderAPI {
 
   async fetchPosts(limit?: number): Promise<Post[]> {
     const response = await fetch(`${BASE_URL}/posts`);
+    requireSuccessfulResponse(response, 'JSONPlaceholder');
     const posts = (await response.json()) as Post[];
     return limit ? posts.slice(0, limit) : posts;
   }
@@ -61,6 +63,7 @@ export class JSONPlaceholderAPI {
 
   async fetchUsers(limit?: number): Promise<User[]> {
     const response = await fetch(`${BASE_URL}/users`);
+    requireSuccessfulResponse(response, 'JSONPlaceholder');
     const users = (await response.json()) as User[];
     return limit ? users.slice(0, limit) : users;
   }
@@ -72,6 +75,7 @@ export class JSONPlaceholderAPI {
   async fetchComments(postId?: number): Promise<Comment[]> {
     const url = postId ? `${BASE_URL}/comments?postId=${postId}` : `${BASE_URL}/comments`;
     const response = await fetch(url);
+    requireSuccessfulResponse(response, 'JSONPlaceholder');
     return (await response.json()) as Comment[];
   }
 
@@ -81,6 +85,7 @@ export class JSONPlaceholderAPI {
 
   async getPostsByUserId(userId: number): Promise<Post[]> {
     const response = await fetch(`${BASE_URL}/posts?userId=${userId}`);
+    requireSuccessfulResponse(response, 'JSONPlaceholder');
     return (await response.json()) as Post[];
   }
 }

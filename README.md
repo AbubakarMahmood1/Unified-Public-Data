@@ -1,49 +1,69 @@
-# Unified-Public-Data
+# Unified Public Data
 
-GraphQL Gateway that federates multiple public REST APIs into a unified GraphQL interface with intelligent caching, query cost analysis, and abuse prevention.
+A TypeScript and Apollo Server GraphQL gateway over three public REST APIs:
+JSONPlaceholder, Open-Meteo, and REST Countries.
 
-## Features
+This is a supporting portfolio project. It demonstrates a single typed API over
+third-party sources, DataLoader-backed lookups, request-budget controls, and
+explicit upstream HTTP failure handling. It is not presented as production,
+scale, reliability, or deployment evidence.
 
-✅ **Fully Implemented**
-- **Apollo Server 4** (Node.js/TypeScript)
-- **3 Public REST APIs** integrated (JSONPlaceholder, Open Meteo, REST Countries)
-- **Response Caching** with configurable TTL (5 min default)
-- **Persisted Queries** (APQ support, 24h TTL)
-- **Query Cost Analysis** to prevent abuse (max 1000 points)
-- **Query Depth Limiting** (max 10 levels)
-- **Rate Limiting** (100 requests/min per IP)
-- **Metrics & Monitoring** with real-time performance tracking
-- **GraphQL Subscriptions** for live weather updates
-- **DataLoader** for efficient request batching
-- **Comprehensive Test Suite** (10 passing tests)
-- **GraphQL Playground** for interactive testing
-- **Deployment Ready** (Cloudflare Workers, Vercel, Docker)
+## Implemented source paths
 
-## Integrated APIs
+- GraphQL queries for posts, users, comments, weather, and countries
+- Nested post/user/comment resolution with DataLoader
+- In-process response caching
+- Query depth and cost limits
+- Per-process rate limiting
+- Persisted-query and metrics plugins
+- Weather subscription resolver logic
+- Vercel and Cloudflare Workers configuration
 
-1. **JSONPlaceholder** - Posts, users, and comments
-2. **Open Meteo** - Real-time weather data
-3. **REST Countries** - Country information and statistics
+The automated suite covers resolver behavior, query-cost rejection, nested
+resolution, and the upstream HTTP failure contract. Source presence for the
+other plugins and hosting adapters is not a production or deployment receipt.
 
-## Quick Start
+## Upstream failure contract
 
-### Prerequisites
-- Node.js 18+
-- npm or yarn
+- Non-success HTTP responses from all three providers raise an
+  `UpstreamHttpError` carrying the provider name, status code, and GraphQL
+  extensions.
+- A REST Countries `404` for a single-country lookup remains a valid `null`
+  result.
+- A success-status response with the wrong REST Countries shape raises an
+  `UpstreamResponseError` instead of being treated as missing data.
+- Network, JSON parsing, and transformation failures propagate as errors rather
+  than being converted into empty lists or `null`.
 
-### Installation
+The gateway does not currently provide retries, request deadlines, circuit
+breaking, stale-if-error responses, or comprehensive runtime validation of
+third-party payloads.
+
+### Current REST Countries gate
+
+The checked-in adapter targets the retired unauthenticated v3.1 contract. A
+live smoke on 2026-07-31 received the provider's deprecation envelope, which the
+gateway now exposes as contract drift. The maintained v5 API requires a bearer
+key, a new hostname, and a new response mapping. Until that credentialed
+migration is deliberately selected, the country fields are not live-operational.
+See the provider's
+[API version policy](https://restcountries.com/docs/countries/api-versions).
+
+## Quick start
+
+Prerequisites: Node.js 18+ and npm.
 
 ```bash
-# Install dependencies
-npm install
-
-# Start development server
+npm ci
+npm run type-check
+npm test
+npm run build
 npm run dev
 ```
 
-The server will start at `http://localhost:4000/graphql`
+The local server starts at `http://localhost:4000/graphql`.
 
-### Example Query
+## Example query
 
 ```graphql
 query GetData {
@@ -69,102 +89,33 @@ query GetData {
 }
 ```
 
-## Available Scripts
+More examples are in [EXAMPLE_QUERIES.md](./EXAMPLE_QUERIES.md).
 
-```bash
-npm run dev          # Start development server with hot reload
-npm run build        # Build for production
-npm start            # Start production server
-npm test             # Run tests
-npm run test:watch   # Run tests in watch mode
-npm run lint         # Lint code
-npm run format       # Format code with Prettier
-```
+## Project structure
 
-## Architecture
-
-### Directory Structure
-```
+```text
 src/
-├── schema/          # GraphQL type definitions
-├── resolvers/       # GraphQL resolvers
-├── datasources/     # REST API clients with DataLoader
-├── plugins/         # Apollo plugins (caching, cost analysis)
-└── index.ts         # Server entry point
+├── datasources/   # REST clients and shared HTTP-status contract
+├── plugins/       # Apollo request controls, caching, and metrics
+├── resolvers/     # Query and nested-field resolvers
+├── schema/        # GraphQL schema
+├── index.ts       # Node.js entry point
+└── worker.ts      # Cloudflare Workers adapter
 ```
 
-### Key Technologies
-- **Apollo Server 4** - GraphQL server
-- **TypeScript** - Type safety
-- **DataLoader** - Request batching and caching
-- **graphql-depth-limit** - Query depth limiting
+## Verification and delivery boundary
 
-## Security Features
+Use `npm test`, `npm run type-check`, and `npm run build` as the local gates.
+There is currently no repository CI workflow, checked-in container definition,
+or verified live deployment. The Vercel and Cloudflare files are configuration
+targets only; see [DEPLOYMENT.md](./DEPLOYMENT.md).
 
-- **Query Complexity Analysis** - Rejects queries exceeding cost limit (default: 1000)
-- **Query Depth Limiting** - Maximum query depth of 10 levels
-- **Response Caching** - 5-minute TTL to reduce API load
-- **Input Validation** - Type-safe query arguments
+The built-process smoke currently passes health, JSONPlaceholder, and
+Open-Meteo. REST Countries remains behind the explicit migration gate above.
 
-## Testing
+The current dependency audit is not clean and includes high-severity production
+findings rooted in Apollo Server 4. Do not deploy this project without a
+separate dependency-upgrade pass and exact-final-tree verification.
 
-```bash
-# Run all tests
-npm test
-
-# Run tests with coverage
-npm run test:coverage
-```
-
-Tests cover:
-- GraphQL resolvers
-- Query cost analysis
-- Nested field resolution
-- Error handling
-
-## Deployment
-
-Ready to deploy to multiple platforms:
-
-### Cloudflare Workers
-```bash
-npm run deploy:cloudflare
-```
-
-### Vercel
-```bash
-npm run deploy:vercel
-```
-
-### Docker
-```bash
-docker build -t unified-public-data .
-docker run -p 4000:4000 unified-public-data
-```
-
-### Other Platforms
-Works on Railway, Render, Fly.io, Heroku, AWS, Google Cloud, Azure, and any Node.js hosting.
-
-See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed deployment instructions.
-
-## Example Queries
-
-See [EXAMPLE_QUERIES.md](./EXAMPLE_QUERIES.md) for more query examples.
-
-## Roadmap
-
-- [x] Schema stitching with 3 public APIs
-- [x] Response caching
-- [x] Query cost limits
-- [x] Persisted queries
-- [x] Rate limiting per IP
-- [x] Metrics and monitoring
-- [x] GraphQL subscriptions (real-time weather updates)
-- [x] Deploy configs for Cloudflare Workers/Vercel
-- [ ] Authentication & authorization
-- [ ] GraphQL Federation v2
-- [ ] OpenTelemetry integration
-
-## License
-
-MIT
+`package.json` declares the MIT identifier, but the repository does not
+currently include a standalone license file.
