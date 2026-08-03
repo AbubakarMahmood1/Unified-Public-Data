@@ -8,7 +8,6 @@ import {
   getNamedType,
   isListType,
   Kind,
-  FieldNode,
   SelectionNode,
 } from 'graphql';
 
@@ -67,7 +66,7 @@ export const queryCostPlugin = <TContext extends BaseContext>(
 
             for (const selection of selections) {
               if (selection.kind === Kind.FIELD) {
-                const fieldNode = selection as FieldNode;
+                const fieldNode = selection;
                 const fieldName = fieldNode.name.value;
 
                 // Skip introspection fields

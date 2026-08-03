@@ -4,10 +4,20 @@ This repository contains configuration targets for Vercel and Cloudflare
 Workers. Their presence does not prove a successful deployment. No live
 deployment receipt is currently recorded.
 
+## Current deployment decision
+
+Do not deploy the raw public gateway yet. There is no selected consumer, and
+the REST Countries acceptable-use boundary does not permit simply re-exposing
+its country data as another public API or feed. A future deployment contract
+must first name the consuming feature, confirm provider permission for that
+shape, add an abuse/quota boundary, and choose a host. Free-tier capacity alone
+is not a deployment reason.
+
 ## Local build and process
 
 ```bash
 npm ci
+npm run lint
 npm run type-check
 npm test
 npm run build
@@ -51,9 +61,10 @@ curl -X POST http://localhost:4000/graphql \
 ## Current delivery boundary
 
 - No checked-in container definition or Compose configuration
-- No repository CI workflow
+- GitHub Actions verification is checked in but has no remote run receipt yet
 - No verified public deployment
 - No rollback, recovery, load, soak, scale, or uptime evidence
 
-Adding a delivery target should be driven by a selected role or an actual
-hosting requirement, then verified on the exact final revision.
+Reopen deployment only for an actual consuming feature or hosting requirement,
+then verify provider permission, cost ceiling, secrets, abuse controls, and the
+exact final revision.

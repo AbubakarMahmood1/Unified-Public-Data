@@ -1,4 +1,3 @@
-import fetch from 'node-fetch';
 import { requireSuccessfulResponse } from './upstreamResponse';
 
 const BASE_URL = 'https://api.open-meteo.com/v1';

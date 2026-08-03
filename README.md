@@ -8,6 +8,15 @@ third-party sources, DataLoader-backed lookups, request-budget controls, and
 explicit upstream HTTP failure handling. It is not presented as production,
 scale, reliability, or deployment evidence.
 
+### Architecture boundary
+
+This is one GraphQL service that aggregates three REST providers. It is not an
+Apollo Federation deployment: there are no independently operated GraphQL
+subgraphs, composed supergraph, or router. Federation would become useful only
+if independently owned graph services or a real consumer created that boundary;
+splitting these three adapters into separate services merely to recover the word
+"federated" would add operational cost without improving the current product.
+
 ## Implemented source paths
 
 - GraphQL queries for posts, users, comments, weather, and countries
@@ -39,19 +48,28 @@ The gateway does not currently provide retries, request deadlines, circuit
 breaking, stale-if-error responses, or comprehensive runtime validation of
 third-party payloads.
 
-### Current REST Countries gate
+### REST Countries credential
 
-The checked-in adapter targets the retired unauthenticated v3.1 contract. A
-live smoke on 2026-07-31 received the provider's deprecation envelope, which the
-gateway now exposes as contract drift. The maintained v5 API requires a bearer
-key, a new hostname, and a new response mapping. Until that credentialed
-migration is deliberately selected, the country fields are not live-operational.
-See the provider's
-[API version policy](https://restcountries.com/docs/countries/api-versions).
+The country adapter targets the maintained v5 API and maps its paginated
+`data.objects` response into the existing GraphQL schema. It validates every
+field the gateway consumes and fails closed on missing credentials, invalid
+records, non-advancing pagination, and non-success HTTP responses.
+
+Set `REST_COUNTRIES_API_KEY` only in the server environment. For local work,
+copy `.env.example` to `.env` and enter the value there; `.env` is ignored by
+Git and loaded by the Node.js entry point. The adapter sends the key in the
+`Authorization: Bearer` header, never in the URL. Do not place it in browser
+code or commit it. See the provider's [authentication and v5 documentation](https://restcountries.com/docs).
 
 ## Quick start
 
-Prerequisites: Node.js 18+ and npm.
+Prerequisites: Node.js 20.9+ and npm.
+
+Copy `.env.example` to `.env`, then set your local REST Countries key:
+
+```dotenv
+REST_COUNTRIES_API_KEY=your-local-key
+```
 
 ```bash
 npm ci
@@ -105,17 +123,20 @@ src/
 
 ## Verification and delivery boundary
 
-Use `npm test`, `npm run type-check`, and `npm run build` as the local gates.
-There is currently no repository CI workflow, checked-in container definition,
-or verified live deployment. The Vercel and Cloudflare files are configuration
-targets only; see [DEPLOYMENT.md](./DEPLOYMENT.md).
+Use `npm run lint`, `npm run type-check`, `npm test`, `npm run build`, and
+`npm audit` as the local gates. The checked-in GitHub Actions workflow repeats
+those gates on Node.js 20 and 24, but it is not a public-CI receipt until it has
+run on GitHub. There is no checked-in container definition or verified live
+deployment. The Vercel and Cloudflare files are configuration targets only;
+see [DEPLOYMENT.md](./DEPLOYMENT.md).
 
-The built-process smoke currently passes health, JSONPlaceholder, and
-Open-Meteo. REST Countries remains behind the explicit migration gate above.
+The adapter and datasource tests cover the REST Countries v5 mapping,
+credential boundary, exact alpha-code routes, pagination, invalid payloads,
+HTTP failures, and the intentional `404`-to-`null` case. A real-key smoke is a
+local verification receipt, not deployment evidence.
 
-The current dependency audit is not clean and includes high-severity production
-findings rooted in Apollo Server 4. Do not deploy this project without a
-separate dependency-upgrade pass and exact-final-tree verification.
+The dependency tree uses Apollo Server 5 and currently passes a full `npm audit`
+with zero known vulnerabilities. Re-run the audit on the exact revision before
+making a future release claim.
 
-`package.json` declares the MIT identifier, but the repository does not
-currently include a standalone license file.
+The project is licensed under the [MIT License](./LICENSE).

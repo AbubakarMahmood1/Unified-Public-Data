@@ -8,7 +8,7 @@ proposal.
 
 ## Current implementation
 
-- Apollo Server 4 with a TypeScript GraphQL schema
+- Apollo Server 5 with a TypeScript GraphQL schema
 - JSONPlaceholder, Open-Meteo, and REST Countries integrations
 - DataLoader-backed nested lookups
 - In-process response caching
@@ -21,8 +21,11 @@ proposal.
 - The original ten resolver and query-cost tests remain in the suite.
 - Provider HTTP-status tests cover explicit `503` failures for all three
   integrations and preserve REST Countries `404` as a missing-country result.
-- A REST Countries success-status error envelope is rejected as contract drift.
-- TypeScript type-check and build are local verification gates.
+- REST Countries v5 tests cover server-only bearer authentication, alpha-2 and
+  alpha-3 lookups, schema mapping, pagination, invalid records, and contract
+  drift.
+- Semantic lint, TypeScript type-check, tests, build, and dependency audit are
+  local verification gates.
 
 ## Failure semantics
 
@@ -32,10 +35,10 @@ REST Countries envelopes use `UPSTREAM_INVALID_RESPONSE`. The only intentional
 absence mapping introduced by HTTP status is a single-country REST Countries
 `404`, which resolves to `null`.
 
-The provider has retired the unauthenticated v3.1 contract used by the current
-adapter. Its maintained v5 API requires a bearer key and a different response
-mapping. That migration is an explicit external-credential and implementation
-gate; it was not smuggled into this bounded repair.
+The country adapter now uses the maintained v5 host and response contract. It
+reads `REST_COUNTRIES_API_KEY` from the server environment, sends it only in a
+bearer header, validates the consumed response fields, and keeps credential
+absence distinct from a missing-country result.
 
 This is deliberately smaller than the generated proposal. The project does not
 claim bounded retries, deadlines, circuit breaking, stale-if-error caching,
@@ -45,14 +48,14 @@ validation of upstream JSON.
 ## Delivery and claim limits
 
 - No checked-in container artifact
-- No repository CI workflow
+- GitHub Actions verification is checked in for Node.js 20 and 24, but has no
+  remote run receipt yet
 - No verified Vercel or Cloudflare deployment
-- No currently operational REST Countries live path
-- Dependency audit is not clean; production findings include high-severity
-  Apollo Server 4 paths
+- REST Countries requires a server-side account key at runtime
+- The exact local dependency tree currently has zero known `npm audit` findings
 - No load, scale, uptime, latency, or reliability receipt
 - No production-ready, enterprise-grade, or battle-tested claim
-- No standalone license file, despite the MIT identifier in `package.json`
+- MIT license is explicit in both `package.json` and the standalone `LICENSE`
 
 See [README.md](./README.md) for use and [DEPLOYMENT.md](./DEPLOYMENT.md) for
 the bounded hosting configuration notes.

@@ -40,11 +40,11 @@ const server = new ApolloServer<Context>({
 });
 
 export interface Env {
-  // Add any environment variables or bindings here
+  REST_COUNTRIES_API_KEY?: string;
 }
 
 export default {
-  async fetch(request: Request, _env: Env, _ctx: unknown): Promise<Response> {
+  async fetch(request: Request, env: Env, _ctx: unknown): Promise<Response> {
     // Only accept POST requests and GET requests (for playground)
     if (request.method !== 'POST' && request.method !== 'GET') {
       return new Response('Method not allowed', { status: 405 });
@@ -111,7 +111,7 @@ export default {
             dataSources: {
               jsonPlaceholder: new JSONPlaceholderAPI(),
               weather: new WeatherAPI(),
-              countries: new CountriesAPI(),
+              countries: new CountriesAPI(env.REST_COUNTRIES_API_KEY),
             },
           },
         }

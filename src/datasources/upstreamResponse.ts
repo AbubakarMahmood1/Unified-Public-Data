@@ -1,4 +1,20 @@
-import { Response } from 'node-fetch';
+export class UpstreamConfigurationError extends Error {
+  readonly source: string;
+  readonly extensions: {
+    code: 'UPSTREAM_CONFIGURATION_ERROR';
+    source: string;
+  };
+
+  constructor(source: string, message: string) {
+    super(`${source} is not configured: ${message}`);
+    this.name = 'UpstreamConfigurationError';
+    this.source = source;
+    this.extensions = {
+      code: 'UPSTREAM_CONFIGURATION_ERROR',
+      source,
+    };
+  }
+}
 
 export class UpstreamHttpError extends Error {
   readonly source: string;

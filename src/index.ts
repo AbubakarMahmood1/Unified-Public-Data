@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { ApolloServer } from '@apollo/server';
 import { startStandaloneServer } from '@apollo/server/standalone';
 import depthLimit from 'graphql-depth-limit';
@@ -58,16 +59,16 @@ async function startServer() {
   });
 
   const { url } = await startStandaloneServer(server, {
-    context: async () => {
+    context: () => {
       // Create new datasource instances for each request
       // This ensures DataLoader batching works correctly per-request
-      return {
+      return Promise.resolve({
         dataSources: {
           jsonPlaceholder: new JSONPlaceholderAPI(),
           weather: new WeatherAPI(),
           countries: new CountriesAPI(),
         },
-      };
+      });
     },
     listen: { port: PORT },
   });
